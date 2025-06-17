@@ -6,57 +6,208 @@
   <title>NoCopyright Video Modifier</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
     }
-    input[type="file"] {
-      margin-top: 20px;
-    }
-    #progressContainer {
+
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px 20px;
+      box-shadow: 0 0 40px rgba(0, 255, 200, 0.15);
+      max-width: 400px;
       width: 100%;
-      background-color: #f3f3f3;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00ffc3;
+      margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+      margin: 20px 0;
+      color: #fff;
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 12px;
+      background: #333;
       border-radius: 10px;
-      margin-top: 20px;
-      height: 25px;
-      overflow: hidden;
+      margin-bottom: 15px;
     }
-    #progressBar {
+
+    .progress-bar {
       height: 100%;
+      background: #00ffc3;
       width: 0%;
-      background-color: #4caf50;
-      text-align: center;
-      color: white;
-      line-height: 25px;
-      transition: width 0.3s ease;
+      border-radius: 10px;
+      transition: 0.3s;
     }
-    #modifyBtn {
-      margin-top: 20px;
-      padding: 10px 20px;
+
+    button {
+      background: #00ffc3;
+      color: #000;
+      border: none;
+      padding: 12px 24px;
       font-size: 16px;
+      margin: 8px 5px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
     }
-    footer {
-      margin-top: 40px;
-      text-align: center;
+
+    button:hover {
+      background: #00cc9e;
+    }
+
+    .status {
+      margin-top: 10px;
       font-size: 14px;
-      color: #555;
+      color: #ccc;
+    }
+
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #00ffc3;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 10px auto;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #bbb;
+    }
+
+    @media screen and (max-width: 480px) {
+      .container {
+        padding: 25px 15px;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 10px;
+      }
     }
   </style>
 </head>
 <body>
+  <h1>NoCopyright Modifier</h1>
+  <div class="container">
+    <input type="file" id="videoInput" accept="video/*" />
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
 
-  <h2>NoCopyright Video Modifier</h2>
-  <input type="file" id="videoUpload" accept="video/mp4" />
-  <div id="progressContainer">
-    <div id="progressBar">0%</div>
+    <div class="status" id="status">Select a video file to begin</div>
+    <div class="loader" id="loader"></div>
+
+    <button id="uploadBtn" onclick="uploadVideo()">Upload</button>
+    <button id="modifyBtn" onclick="modifyVideo()" disabled>Modify</button>
+    <a id="downloadBtn" href="#" download style="display:none;">
+      <button>Download</button>
+    </a>
   </div>
-  <button id="modifyBtn">Modify</button>
 
   <footer>
-    Powered by BAPON BARMON
+    Powered by <strong>BAPON BARMON</strong>
   </footer>
 
-  <script src="app.js"></script>
+  <script>
+    let uploadedFilename = "";
+
+    function uploadVideo() {
+      const fileInput = document.getElementById('videoInput');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Please select a video first.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("video", file);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://nocopyright-backend.onrender.com/upload", true);
+
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          document.getElementById('progressBar').style.width = percent + "%";
+          document.getElementById('status').innerText = `Uploading: ${percent}%`;
+        }
+      };
+
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          const res = JSON.parse(xhr.responseText);
+          uploadedFilename = res.filename;
+          document.getElementById('status').innerText = "Upload complete. Ready to modify.";
+          document.getElementById('modifyBtn').disabled = false;
+        } else {
+          document.getElementById('status').innerText = "Upload failed.";
+        }
+      };
+
+      xhr.send(formData);
+    }
+
+    function modifyVideo() {
+      if (!uploadedFilename) {
+        alert("Upload a video first.");
+        return;
+      }
+
+      document.getElementById('status').innerText = "Processing video...";
+      document.getElementById('loader').style.display = "block";
+
+      fetch("https://nocopyright-backend.onrender.com/modify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ filename: uploadedFilename })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('loader').style.display = "none";
+        if (data.modified_filename) {
+          const downloadURL = `https://nocopyright-backend.onrender.com/download/${data.modified_filename}`;
+          const downloadBtn = document.getElementById('downloadBtn');
+          downloadBtn.href = downloadURL;
+          downloadBtn.style.display = "inline-block";
+          document.getElementById('status').innerText = "Modification complete. Ready to download.";
+        } else {
+          document.getElementById('status').innerText = "Modification failed.";
+        }
+      })
+      .catch(() => {
+        document.getElementById('loader').style.display = "none";
+        document.getElementById('status').innerText = "Server error during modification.";
+      });
+    }
+  </script>
 </body>
 </html>

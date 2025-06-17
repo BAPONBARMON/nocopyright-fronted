@@ -2,72 +2,61 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RemixCleaner</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NoCopyright Video Modifier</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    input[type="file"] {
+      margin-top: 20px;
+    }
+    #progressContainer {
+      width: 100%;
+      background-color: #f3f3f3;
+      border-radius: 10px;
+      margin-top: 20px;
+      height: 25px;
+      overflow: hidden;
+    }
+    #progressBar {
+      height: 100%;
+      width: 0%;
+      background-color: #4caf50;
+      text-align: center;
+      color: white;
+      line-height: 25px;
+      transition: width 0.3s ease;
+    }
+    #modifyBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
+<body>
 
-  <header class="bg-indigo-600 text-white text-center py-4 shadow-md">
-    <h1 class="text-2xl font-bold">RemixCleaner</h1>
-    <p class="text-sm mt-1">Make videos copyright-safe in seconds</p>
-  </header>
+  <h2>NoCopyright Video Modifier</h2>
+  <input type="file" id="videoUpload" accept="video/mp4" />
+  <div id="progressContainer">
+    <div id="progressBar">0%</div>
+  </div>
+  <button id="modifyBtn">Modify</button>
 
-  <main class="flex-grow flex items-center justify-center px-4">
-    <div class="bg-white shadow-lg rounded-xl p-6 w-full max-w-xl space-y-4 text-center">
-      <h2 class="text-lg font-semibold mb-2">Upload your video (max 3 minutes)</h2>
-
-      <input id="videoInput" type="file" accept="video/*" class="block mx-auto mb-3" />
-
-      <button id="modifyBtn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
-        Modify
-      </button>
-
-      <div id="status" class="text-sm mt-3 text-gray-700"></div>
-
-      <a id="downloadLink" href="#" download class="hidden text-green-600 mt-4 underline">Download Modified Video</a>
-    </div>
-  </main>
-
-  <footer class="bg-gray-200 text-center text-xs py-3">
-    Powered by <strong>BAPON BARMON</strong>
+  <footer>
+    Powered by BAPON BARMON
   </footer>
 
-  <script>
-    const modifyBtn = document.getElementById("modifyBtn");
-    const videoInput = document.getElementById("videoInput");
-    const status = document.getElementById("status");
-    const downloadLink = document.getElementById("downloadLink");
-
-    modifyBtn.onclick = async () => {
-      const file = videoInput.files[0];
-      if (!file) {
-        status.textContent = "Please select a video file.";
-        return;
-      }
-
-      status.textContent = "Uploading and processing...";
-      const formData = new FormData();
-      formData.append("video", file);
-
-      try {
-        const res = await fetch("https://nocopyright-backend-1.onrender.com/remix", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!res.ok) throw new Error("Processing failed");
-
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        downloadLink.href = url;
-        downloadLink.classList.remove("hidden");
-        downloadLink.textContent = "Download Modified Video";
-        status.textContent = "Done!";
-      } catch (err) {
-        status.textContent = "Error processing video. Try again.";
-      }
-    };
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>

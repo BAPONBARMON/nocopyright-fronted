@@ -15,7 +15,7 @@
   modifyBtn.innerText = 'Processing...';
 
   try {
-    const response = await fetch('https://nocopyright-backend-1.onrender.com/api/process', {
+    const response = await fetch('https://nocopyright-backend-1.onrender.com/upload', {
       method: 'POST',
       body: formData,
     });

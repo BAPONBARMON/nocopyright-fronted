@@ -1,52 +1,41 @@
-﻿body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #f4f4f8;
-  text-align: center;
-  padding: 30px;
-}
+﻿document.getElementById('modifyBtn').addEventListener('click', async () => {
+  const fileInput = document.getElementById('videoUpload');
+  const file = fileInput.files[0];
 
-.container {
-  background: white;
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  max-width: 400px;
-  margin: auto;
-}
+  if (!file) {
+    alert('Please select a video file first.');
+    return;
+  }
 
-h1 {
-  color: #333;
-  margin-bottom: 20px;
-}
+  const formData = new FormData();
+  formData.append('video', file);
 
-input[type="file"] {
-  margin: 20px 0;
-}
+  const modifyBtn = document.getElementById('modifyBtn');
+  modifyBtn.disabled = true;
+  modifyBtn.innerText = 'Processing...';
 
-button {
-  padding: 10px 20px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-}
+  try {
+    const response = await fetch('https://nocopyright-backend-1.onrender.com/api/process', {
+      method: 'POST',
+      body: formData,
+    });
 
-button:disabled {
-  background: #aaa;
-}
+    if (!response.ok) {
+      throw new Error('Failed to process video');
+    }
 
-a#downloadLink {
-  display: none;
-  margin-top: 20px;
-  color: #007BFF;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.footer {
-  margin-top: 40px;
-  font-size: 14px;
-  color: #999;
-}
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'remixed_video.mp4';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(error);
+    alert('Error processing video. Try again.');
+  } finally {
+    modifyBtn.disabled = false;
+    modifyBtn.innerText = 'Modify';
+  }
+});
